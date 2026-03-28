@@ -59,6 +59,7 @@
     <div class="suspects-grid" id="suspects-grid"></div>
     <div class="hub-actions">
       <button class="btn-secondary" id="btn-eavesdrop-mode">👂 Eavesdrop on Suspects</button>
+      <button class="btn-secondary" id="btn-interrogate-mode">🔦 Interrogate Suspects</button>
       <button class="btn-danger" id="btn-accuse" style="display:none" onclick="showScreen('accusation')">⚖️ Make Accusation</button>
     </div>
     <div class="eavesdrop-hint" id="eavesdrop-hint" style="display:none">Select 2 suspects to eavesdrop on, then press Start</div>
@@ -67,6 +68,13 @@
     <span id="eavesdrop-select-label">Select 2 suspects above</span>
     <button class="btn-primary" id="btn-start-eavesdrop" disabled onclick="startEavesdrop()">Start Listening</button>
     <button class="btn-ghost" id="btn-cancel-eavesdrop">Cancel</button>
+  </div>
+
+  <!-- Interrogation select bar -->
+  <div class="eavesdrop-select-ui" id="interrogation-select-ui" style="border-color:var(--crimson);color:var(--crimson-l)">
+    <span id="interrogation-select-label">Select 1–3 suspects to interrogate</span>
+    <button class="btn-danger" id="btn-start-interrogation" disabled onclick="enterInterrogationRoom()">Enter Room</button>
+    <button class="btn-ghost" id="btn-cancel-interrogation">Cancel</button>
   </div>
 </div>
 
@@ -128,6 +136,58 @@
     </div>
     <div class="eavesdrop-scroll" id="eavesdrop-scroll"></div>
     <div id="eavesdrop-clue-area"></div>
+  </div>
+</div>
+
+<!-- INTERROGATION ROOM -->
+<div id="s-interrogation" class="screen">
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:.8rem">
+      <button class="btn-ghost" onclick="leaveInterrogationRoom()">← Leave Room</button>
+      <div class="topbar-title" id="iroom-topbar-title">Interrogation Room</div>
+    </div>
+    <div class="topbar-btns">
+      <button class="btn-ghost" id="btn-tts-toggle" onclick="toggleTTS()">🔊 Voice: On</button>
+      <button class="btn-ghost" onclick="showScreen('evidence')">Evidence</button>
+    </div>
+  </div>
+
+  <div class="iroom-scene">
+    <!-- Room layers -->
+    <div class="iroom-bg">
+      <div class="iroom-wall-texture"></div>
+      <!-- Side sconces -->
+      <div class="iroom-sconce left"></div>
+      <div class="iroom-sconce right"></div>
+      <div class="iroom-sconce-glow left"></div>
+      <div class="iroom-sconce-glow right"></div>
+      <!-- Lamp -->
+      <div class="iroom-lamp-cord"></div>
+      <div class="iroom-lamp-shade"></div>
+      <div class="iroom-lamp-glow"></div>
+      <!-- Floor + table -->
+      <div class="iroom-floor"></div>
+      <div class="iroom-table"></div>
+      <div class="iroom-vignette"></div>
+    </div>
+    <!-- Characters rendered here -->
+    <div class="iroom-stage" id="iroom-stage"></div>
+    <!-- Detective's spoken question floats at bottom of stage -->
+    <div class="iroom-detective-bar" id="iroom-detective-bar" style="display:none">
+      <span class="iroom-detective-label">Det. Hartley:</span>
+      <span id="iroom-detective-text"></span>
+    </div>
+  </div>
+
+  <div class="iroom-log" id="iroom-log"></div>
+
+  <div class="iroom-input-area">
+    <div class="iroom-input-label">Detective Hartley — speak your question:</div>
+    <div class="iroom-input-row">
+      <textarea id="iroom-question" placeholder="Ask your question to the suspect(s)…" maxlength="400"
+        onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendInterrogationQuestion()}"></textarea>
+      <button class="send-btn" id="iroom-send-btn" onclick="sendInterrogationQuestion()">Ask ▶</button>
+    </div>
   </div>
 </div>
 
@@ -199,6 +259,8 @@
 <script src="js/portraits.js"></script>
 <script src="js/state.js"></script>
 <script src="js/api.js"></script>
+<script src="js/tts.js"></script>
+<script src="js/interrogation.js"></script>
 <script src="js/ui.js"></script>
 <script src="js/main.js"></script>
 </body>
