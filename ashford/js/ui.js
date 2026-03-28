@@ -27,9 +27,13 @@ function updateHubCards() {
     const s = G.suspects[id];
     if (!s) return;
 
+    const inEavesdrop     = G.eavesdropMode && G.eavesdropSelected.includes(id);
+    const inInterrogation = IROOM.mode      && IROOM.selected.includes(id);
+
     const card = document.createElement('div');
     card.className = 'suspect-card' +
-      (G.eavesdropMode && G.eavesdropSelected.includes(id) ? ' eavesdrop-selected' : '');
+      (inEavesdrop     ? ' eavesdrop-selected'     : '') +
+      (inInterrogation ? ' interrogation-selected' : '');
     card.dataset.id = id;
 
     const trustColor = s.trust > 65 ? '#6acc88' : s.trust < 35 ? 'var(--crimson)' : 'var(--gold-d)';
@@ -58,11 +62,10 @@ function updateHubCards() {
 }
 
 function handleCardClick(id) {
-  if (G.eavesdropMode) {
-    toggleEavesdropSelect(id);
-  } else {
-    openInterview(id);
-  }
+  if (G.eavesdropMode)  { toggleEavesdropSelect(id);     return; }
+  if (IROOM.mode)       { toggleInterrogationSelect(id); return; }
+  // Default: open old-style interview
+  openInterview(id);
 }
 
 // ── Eavesdrop mode UI ───────────────────────────────────────────
