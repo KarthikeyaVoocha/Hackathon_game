@@ -172,7 +172,7 @@ Respond ONLY as valid JSON:
 }`;
 }
 
-// ── Interview call ──────────────────────────────────────────────
+// ── Interview call (with retry) ─────────────────────────────────
 async function askSuspect(id, question) {
   const s = G.suspects[id];
   s.isTalking = true;
@@ -180,21 +180,41 @@ async function askSuspect(id, question) {
 
   try {
     const msgs = [...s.history, { role: 'user', content: question }];
-    const raw  = await apiCall(msgs, buildSysPrompt(id));
-    const data = parseJSON(raw) || { dialogue: '…', emotion: 'calm', action: null, clue: null, trustDelta: 0 };
 
-    s.history.push({ role: 'user',      content: question      });
-    s.history.push({ role: 'assistant', content: data.dialogue });
-    s.emotion     = data.emotion    || 'calm';
-    s.trust       = Math.max(5, Math.min(95, s.trust + (data.trustDelta || 0)));
+    // Retry up to 3 times if JSON parse fails
+    let data = null;
+    let lastErr;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        const raw = await apiCall(msgs, buildSysPrompt(id));
+        data = parseJSON(raw);
+        if (data) break;
+        lastErr = new Error('JSON parse returned null');
+        console.warn(`[askSuspect retry ${attempt+1}/3] JSON null, retrying…`);
+        await sleep(500 * (attempt + 1));
+      } catch (e) {
+        lastErr = e;
+        if (attempt < 2) {
+          console.warn(`[askSuspect retry ${attempt+1}/3] ${e.message}`);
+          await sleep(600 * (attempt + 1));
+        }
+      }
+    }
+    if (!data) throw lastErr || new Error('Failed after retries');
+
+    const out = data;
+    s.history.push({ role: 'user',      content: question    });
+    s.history.push({ role: 'assistant', content: out.dialogue });
+    s.emotion     = out.emotion    || 'calm';
+    s.trust       = Math.max(5, Math.min(95, s.trust + (out.trustDelta || 0)));
     s.interviewed = true;
     s.isTalking   = false;
 
-    if (data.clue) addClue(data.clue, s.name, id);
+    if (out.clue) addClue(out.clue, s.name, id);
     advanceTime();
     updatePortraitDisplay(id);
     updateHubCards();
-    return data;
+    return out;
 
   } catch (e) {
     s.isTalking = false;
