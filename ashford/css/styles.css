@@ -268,3 +268,335 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
 .cursor-blink{display:inline-block;width:2px;height:1em;background:var(--gold);vertical-align:text-bottom;
   animation:blink .7s step-end infinite;margin-left:1px}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+
+/* ═══════════════════════════════════════════════════════════════
+   INTERROGATION ROOM
+═══════════════════════════════════════════════════════════════ */
+
+#s-interrogation { background:#080604; overflow:hidden; }
+
+.iroom-scene {
+  flex:1;position:relative;overflow:visible;   /* change hidden→visible */
+}
+
+/* ── Room layers ── */
+.iroom-bg { position:absolute;inset:0; }
+
+.iroom-wall-texture {
+  position:absolute;inset:0;bottom:36%;
+  background-image:
+    repeating-linear-gradient(90deg,
+      transparent 0px,transparent 79px,
+      rgba(0,0,0,0.28) 79px,rgba(0,0,0,0.28) 80px),
+    linear-gradient(180deg,#0d0905 0%,#1a1208 55%,#120d07 100%);
+}
+
+/* Chair rail moulding */
+.iroom-wall-texture::after {
+  content:'';position:absolute;
+  bottom:0;left:0;right:0;height:8px;
+  background:linear-gradient(180deg,#3a2208,#2a1608,#1a0e04);
+  box-shadow:0 -2px 0 rgba(200,140,60,0.12);
+}
+
+/* Hanging lamp cord */
+.iroom-lamp-cord {
+  position:absolute;top:0;left:50%;transform:translateX(-50%);
+  width:3px;height:100px;
+  background:linear-gradient(180deg,#2a1a0a,#4a2a10);
+  z-index:5;
+}
+
+/* Lamp shade */
+.iroom-lamp-shade {
+  position:absolute;top:94px;left:50%;transform:translateX(-50%);
+  width:88px;height:50px;
+  background:linear-gradient(180deg,#5a3515 0%,#3a2008 100%);
+  clip-path:polygon(8% 0,92% 0,100% 100%,0% 100%);
+  z-index:5;
+  box-shadow:0 0 25px rgba(200,140,40,0.35);
+}
+.iroom-lamp-shade::before {
+  content:'';position:absolute;bottom:-3px;left:8%;right:8%;
+  height:5px;background:#e8c060;filter:blur(4px);border-radius:4px;
+}
+
+/* Spotlight glow from lamp */
+.iroom-lamp-glow {
+  position:absolute;top:144px;left:50%;transform:translateX(-50%);
+  width:600px;height:600px;pointer-events:none;z-index:4;
+  background:radial-gradient(ellipse 260px 480px at 50% 0%,
+    rgba(210,155,50,0.13) 0%,rgba(180,120,30,0.06) 45%,transparent 70%);
+  animation:lamp-flicker 9s ease-in-out infinite;
+}
+@keyframes lamp-flicker {
+  0%,93%,100%{opacity:1}
+  94%{opacity:.7}96%{opacity:.95}97.5%{opacity:.6}99%{opacity:.9}
+}
+
+/* Floor */
+.iroom-floor {
+  position:absolute;bottom:0;left:0;right:0;height:38%;
+  background:
+    repeating-linear-gradient(90deg,
+      #1a1005 0px,#1a1005 57px,
+      #1e1408 57px,#1e1408 58px),
+    linear-gradient(180deg,#1c1208 0%,#0f0a05 100%);
+}
+.iroom-floor::before {
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(200,140,60,0.15),transparent);
+}
+
+/* Table */
+.iroom-table {
+  position:absolute;bottom:34.5%;left:50%;transform:translateX(-50%);
+  width:min(640px,88%);height:20px;
+  background:linear-gradient(180deg,#6a3818 0%,#4a2208 100%);
+  border-radius:2px;
+  box-shadow:0 6px 35px rgba(0,0,0,0.9),0 -1px 0 rgba(200,140,60,0.18);
+  z-index:3;
+}
+.iroom-table::before {
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,#7a4820,#a86030,#9a5225,#7a4820);border-radius:2px;
+}
+.iroom-table::after {
+  content:'';position:absolute;top:100%;left:2%;right:2%;height:40px;
+  background:linear-gradient(180deg,#3a1c08,#1a0c04);
+  border-radius:0 0 3px 3px;
+}
+
+/* Vignette */
+.iroom-vignette {
+  position:absolute;inset:0;pointer-events:none;z-index:20;
+  background:radial-gradient(ellipse at 50% 38%,transparent 35%,rgba(0,0,0,0.78) 100%);
+}
+
+/* ── Character stage ── */
+.iroom-stage {
+  position:absolute;bottom:36%;left:0;right:0;height:52%;z-index:10;
+}
+
+/* Individual character slot */
+.ichar-wrapper {
+  position:absolute;bottom:0;
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+  transform:translateX(-50%);
+  will-change:transform,opacity;
+}
+.ichar-wrapper.ichar-arrived {
+  animation:ichar-breathe 3.8s ease-in-out infinite;
+}
+@keyframes ichar-breathe {
+  0%,100%{transform:translateX(-50%) scaleY(1)}
+  50%{transform:translateX(-50%) scaleY(1.013)}
+}
+@keyframes walk-bob {
+  0%,100%{transform:translateX(-50%) translateY(0)}
+  50%{transform:translateX(-50%) translateY(-7px)}
+}
+
+.ichar-portrait-box { width:140px;overflow:hidden; }
+.ichar-portrait-box svg { width:100%;display:block; }
+
+.ichar-nameplate {
+  font-family:'Cinzel',serif;font-size:.68rem;color:var(--gold);
+  letter-spacing:.07rem;text-align:center;padding:.22rem .7rem;
+  background:rgba(0,0,0,.65);border:1px solid var(--border);
+  backdrop-filter:blur(4px);
+}
+
+/* ── THOUGHT BUBBLE — comic-style cloud with circle tail ── */
+.speech-bubble {
+  position:absolute;
+  bottom:calc(100% + 14px);       /* extra space for the circle dots */
+  left:50%;
+  transform:translateX(-50%) scale(0.88) translateY(6px);
+  min-width:190px;max-width:min(260px,38vw);
+  background:rgba(248,238,210,0.97);
+  border:2px solid #8a6420;
+  border-radius:22px;             /* cloud-round corners */
+  padding:.75rem 1.1rem .85rem;
+  opacity:0;pointer-events:none;
+  transition:opacity .32s ease, transform .32s cubic-bezier(.34,1.56,.64,1);
+  z-index:30;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.4),
+    0 8px 32px rgba(0,0,0,0.8),
+    0 2px 8px rgba(0,0,0,0.5);
+  /* Subtle aged-paper lines */
+  background-image:
+    repeating-linear-gradient(0deg,transparent,transparent 23px,rgba(140,100,40,0.055) 24px);
+}
+.speech-bubble.sb-active {
+  opacity:1;
+  transform:translateX(-50%) scale(1) translateY(0);
+}
+
+/* Corner ornaments */
+.speech-bubble::before{
+  content:'✦';position:absolute;top:5px;left:8px;
+  font-size:.4rem;color:rgba(138,100,32,0.55);line-height:1;
+}
+.speech-bubble::after{
+  content:'✦';position:absolute;bottom:5px;right:8px;
+  font-size:.4rem;color:rgba(138,100,32,0.55);line-height:1;
+}
+
+/* ── Thought-bubble dot chain (3 decreasing circles) ── */
+.bubble-tail {
+  /* Largest dot — closest to bubble */
+  position:absolute;
+  top:calc(100% + 3px);
+  left:50%;
+  transform:translateX(-50%);
+  width:11px;height:11px;
+  border-radius:50%;
+  background:rgba(248,238,210,0.97);
+  border:2px solid #8a6420;
+  box-shadow:0 2px 6px rgba(0,0,0,0.4);
+}
+.bubble-tail::before {
+  /* Medium dot */
+  content:'';
+  position:absolute;
+  top:12px;left:0px;
+  width:7px;height:7px;
+  border-radius:50%;
+  background:rgba(248,238,210,0.97);
+  border:2px solid #8a6420;
+  box-shadow:0 1px 4px rgba(0,0,0,0.35);
+}
+.bubble-tail::after {
+  /* Tiny dot — farthest from bubble */
+  content:'';
+  position:absolute;
+  top:22px;left:1px;
+  width:5px;height:5px;
+  border-radius:50%;
+  background:rgba(248,238,210,0.97);
+  border:1.5px solid #8a6420;
+  box-shadow:0 1px 3px rgba(0,0,0,0.3);
+}
+
+.bubble-speaker {
+  font-family:'Cinzel',serif;font-size:.56rem;color:#7a5010;
+  letter-spacing:.12rem;text-transform:uppercase;
+  margin-bottom:.28rem;
+  border-bottom:1px solid rgba(138,100,32,0.28);
+  padding-bottom:.2rem;
+}
+.bubble-text {
+  font-family:'IM Fell English',serif;font-size:.83rem;
+  color:#1e1006;line-height:1.6;font-style:italic;
+}
+.bubble-action {
+  font-family:'Special Elite',monospace;font-size:.6rem;
+  color:#8a6420;margin-top:.32rem;font-style:normal;
+  border-top:1px solid rgba(138,100,32,0.22);padding-top:.25rem;
+}
+
+/* Detective question bar inside room */
+.iroom-detective-bar {
+  position:absolute;bottom:2px;left:50%;transform:translateX(-50%);
+  background:rgba(30,15,5,0.88);
+  border:1px solid var(--gold-d);border-bottom:none;
+  padding:.4rem 1.1rem;z-index:25;
+  font-family:'IM Fell English',serif;font-size:.82rem;
+  color:var(--text);font-style:italic;
+  max-width:560px;width:90%;text-align:center;
+  backdrop-filter:blur(5px);
+}
+.iroom-detective-label {
+  font-family:'Cinzel',serif;font-size:.58rem;color:var(--gold-d);
+  letter-spacing:.1rem;text-transform:uppercase;margin-right:.5rem;
+}
+
+/* Input area */
+.iroom-input-area {
+  flex-shrink:0;background:rgba(0,0,0,0.72);
+  border-top:1px solid var(--border);padding:.75rem 1.4rem;
+  backdrop-filter:blur(6px);
+}
+.iroom-input-label {
+  font-family:'Cinzel',serif;font-size:.62rem;letter-spacing:.18rem;
+  color:var(--gold-d);text-transform:uppercase;margin-bottom:.4rem;
+}
+.iroom-input-row { display:flex;gap:.6rem; }
+.iroom-input-row textarea {
+  flex:1;background:rgba(0,0,0,.5);border:1px solid var(--border);
+  color:var(--text);font-family:'IM Fell English',serif;
+  font-size:.875rem;padding:.5rem .8rem;resize:none;height:50px;
+  outline:none;transition:border-color .3s;border-radius:1px;
+}
+.iroom-input-row textarea:focus { border-color:var(--gold-d); }
+.iroom-input-row textarea::placeholder { color:var(--text-dim);font-style:italic; }
+
+/* Hub card highlight for interrogation select */
+.suspect-card.interrogation-selected {
+  border-color:var(--crimson-l);
+  box-shadow:0 0 22px rgba(192,37,58,0.3);
+}
+.suspect-card.interrogation-selected::after {
+  content:'✦';position:absolute;top:5px;right:7px;
+  color:var(--crimson-l);font-size:.9rem;font-weight:bold;
+}
+
+/* ── Wall sconces (side candles) ── */
+.iroom-sconce {
+  position:absolute;top:22%;width:16px;height:42px;z-index:6;
+}
+.iroom-sconce.left  { left:10%; }
+.iroom-sconce.right { right:10%; }
+.iroom-sconce::before {
+  content:'';position:absolute;
+  bottom:0;left:50%;transform:translateX(-50%);
+  width:10px;height:18px;
+  background:linear-gradient(180deg,#d8a040,#7a4010);
+  border-radius:2px 2px 0 0;
+}
+.iroom-sconce::after {
+  content:'';position:absolute;
+  bottom:16px;left:50%;transform:translateX(-50%);
+  width:2px;height:100%;
+  background:linear-gradient(180deg,#2a1808,#4a2810);
+}
+.iroom-sconce-glow {
+  position:absolute;top:20%;width:120px;height:140px;
+  z-index:4;pointer-events:none;
+  background:radial-gradient(ellipse 55px 70px at 50% 25%,
+    rgba(220,160,50,0.1) 0%,transparent 70%);
+  animation:sconce-flicker 7s ease-in-out infinite;
+}
+.iroom-sconce-glow.left  { left:6.5%; }
+.iroom-sconce-glow.right { right:6.5%; }
+@keyframes sconce-flicker {
+  0%,90%,100%{opacity:1}
+  92%{opacity:.4} 95%{opacity:.9} 97%{opacity:.3} 99%{opacity:.8}
+}
+
+/* ── Conversation log strip ── */
+.iroom-log {
+  flex-shrink:0;
+  max-height:72px;
+  overflow-y:auto;
+  padding:.35rem 1.4rem;
+  background:rgba(5,3,1,0.75);
+  border-top:1px solid rgba(58,42,26,0.6);
+  display:flex;flex-direction:column;gap:.2rem;
+  scroll-behavior:smooth;
+}
+.iroom-log::-webkit-scrollbar{width:3px}
+.iroom-log::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.iroom-log-entry {
+  font-family:'Special Elite',monospace;font-size:.64rem;
+  line-height:1.45;display:flex;gap:.45rem;align-items:baseline;flex-shrink:0;
+}
+.iroom-log-speaker {
+  font-family:'Cinzel',serif;font-size:.55rem;color:var(--gold-d);
+  letter-spacing:.06rem;white-space:nowrap;flex-shrink:0;
+}
+.iroom-log-text { color:var(--text-dim); }
+.iroom-log-entry.detective .iroom-log-speaker { color:var(--crimson-l); }
+.iroom-log-entry.detective .iroom-log-text { color:var(--text);font-style:italic; }
