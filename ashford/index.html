@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ashford Manor — A Murder Mystery</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Cinzel+Decorative:wght@400;700&family=IM+Fell+English:ital@0;1&family=Special+Elite&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<!-- TITLE SCREEN -->
+<div id="s-title" class="screen active">
+  <svg class="title-flames" viewBox="0 0 400 200" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <radialGradient id="fglow" cx="50%" cy="80%" r="60%">
+        <stop offset="0%" stop-color="#c4953a" stop-opacity="0.6"/>
+        <stop offset="100%" stop-color="transparent"/>
+      </radialGradient>
+    </defs>
+    <ellipse cx="200" cy="180" rx="180" ry="80" fill="url(#fglow)"/>
+    <g opacity="0.7">
+      <path d="M160 180 Q155 140 170 120 Q165 155 175 165 Q170 145 180 130 Q178 160 190 170 Q185 150 195 135 Q193 162 200 180Z" fill="#c4953a"/>
+      <path d="M200 180 Q195 145 210 120 Q205 158 215 168 Q210 148 225 130 Q220 162 230 172 Q225 152 235 138 Q234 164 240 180Z" fill="#e8a830" opacity="0.8"/>
+    </g>
+  </svg>
+  <div class="title-wrap">
+    <div class="title-kicker">A Mystery in Five Acts</div>
+    <div class="title-main">Ashford Manor</div>
+    <div class="title-sub">Murder at Midnight</div>
+    <div class="deco-line"><span>◆</span></div>
+    <p style="font-size:.82rem;color:var(--text-dim);font-style:italic;max-width:360px;margin:0 auto 2.5rem;line-height:1.6">
+      A body has been discovered. Every soul within these walls harbours secrets. Only one is a killer.
+    </p>
+    <div style="display:flex;flex-direction:column;gap:.7rem;align-items:center">
+      <button class="btn-primary" id="btn-newgame">Begin Investigation</button>
+      <button class="btn-secondary" id="btn-apikey">Set API Key</button>
+    </div>
+  </div>
+</div>
+
+<!-- HUB SCREEN -->
+<div id="s-hub" class="screen">
+  <div class="topbar">
+    <div class="topbar-title">Ashford Manor — Investigation</div>
+    <div class="topbar-info">
+      <div class="topbar-day" id="hub-day">Day 1, Evening</div>
+      <div class="topbar-clues" id="hub-clues" onclick="showScreen('evidence')">🔍 <span id="clue-count">0</span> Clues</div>
+    </div>
+    <div class="topbar-btns">
+      <button class="btn-ghost" onclick="showScreen('evidence')">Evidence Board</button>
+      <button class="btn-ghost" id="btn-newgame-hub">New Game</button>
+    </div>
+  </div>
+  <div class="hub-room-title" id="hub-room-label">The Drawing Room — Evening</div>
+  <div class="hub-main">
+    <div class="hub-story-box" id="hub-synopsis"></div>
+    <div class="suspects-grid" id="suspects-grid"></div>
+    <div class="hub-actions">
+      <button class="btn-secondary" id="btn-eavesdrop-mode">👂 Eavesdrop on Suspects</button>
+      <button class="btn-danger" id="btn-accuse" style="display:none" onclick="showScreen('accusation')">⚖️ Make Accusation</button>
+    </div>
+    <div class="eavesdrop-hint" id="eavesdrop-hint" style="display:none">Select 2 suspects to eavesdrop on, then press Start</div>
+  </div>
+  <div class="eavesdrop-select-ui" id="eavesdrop-select-ui">
+    <span id="eavesdrop-select-label">Select 2 suspects above</span>
+    <button class="btn-primary" id="btn-start-eavesdrop" disabled onclick="startEavesdrop()">Start Listening</button>
+    <button class="btn-ghost" id="btn-cancel-eavesdrop">Cancel</button>
+  </div>
+</div>
+
+<!-- INTERVIEW SCREEN -->
+<div id="s-interview" class="screen">
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:.8rem">
+      <button class="btn-ghost" onclick="showScreen('hub')" style="padding:.4rem .8rem">← Leave</button>
+      <div class="topbar-title" id="interview-topbar-name">Interrogation</div>
+    </div>
+    <div class="topbar-btns">
+      <button class="btn-ghost" onclick="showScreen('evidence')">Evidence Board</button>
+    </div>
+  </div>
+  <div class="interview-layout">
+    <div class="interview-portrait-col">
+      <div class="portrait-wrap" id="interview-portrait"></div>
+      <div class="portrait-name" id="interview-name"></div>
+      <div class="portrait-role" id="interview-role"></div>
+      <div style="margin:.3rem 0"><span class="emotion-tag" id="interview-emotion-tag">Calm</span></div>
+      <div class="trust-section">
+        <div class="trust-label"><span>Trust</span><span id="trust-val">50%</span></div>
+        <div class="trust-bar"><div class="trust-fill" id="trust-fill" style="width:50%;background:var(--gold-d)"></div></div>
+      </div>
+      <div class="rel-indicator" id="rel-indicator"></div>
+      <div class="eavesdrop-log" id="eavesdrop-log"></div>
+    </div>
+    <div class="interview-right">
+      <div class="dialogue-history" id="dialogue-history"></div>
+      <div class="input-row">
+        <textarea id="question-input" placeholder="Ask your question..." maxlength="300"
+          onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendQuestion()}"></textarea>
+        <button class="send-btn" id="send-btn" onclick="sendQuestion()">Ask ▶</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- EAVESDROP SCREEN -->
+<div id="s-eavesdrop" class="screen">
+  <div class="eavesdrop-header">
+    <div style="font-family:'Special Elite',monospace;font-size:.7rem;color:var(--text-dim);font-style:italic">
+      You press yourself against the cold wall...
+    </div>
+    <div class="eavesdrop-title" id="eavesdrop-title">Eavesdropping</div>
+    <button class="btn-ghost" onclick="showScreen('hub')">← Return</button>
+  </div>
+  <div class="eavesdrop-main">
+    <div class="eavesdrop-stage" id="eavesdrop-stage">
+      <div class="eavesdrop-char" id="ev-char-left">
+        <div class="portrait-wrap" id="ev-portrait-left"></div>
+        <div class="eavesdrop-char-name" id="ev-name-left"></div>
+      </div>
+      <div class="eavesdrop-bubble left" id="ev-bubble-center" style="display:none"></div>
+      <div class="eavesdrop-char" id="ev-char-right">
+        <div class="portrait-wrap" id="ev-portrait-right"></div>
+        <div class="eavesdrop-char-name" id="ev-name-right"></div>
+      </div>
+    </div>
+    <div class="eavesdrop-scroll" id="eavesdrop-scroll"></div>
+    <div id="eavesdrop-clue-area"></div>
+  </div>
+</div>
+
+<!-- EVIDENCE BOARD -->
+<div id="s-evidence" class="screen">
+  <div class="evidence-header">
+    <button class="btn-ghost" onclick="showScreen('hub')">← Back to Manor</button>
+    <div class="evidence-title">Evidence Board</div>
+    <div style="font-family:'Special Elite',monospace;font-size:.7rem;color:var(--text-dim)">
+      <span id="ev-count">0</span> items collected
+    </div>
+  </div>
+  <div class="evidence-board" id="evidence-board">
+    <div class="evidence-empty" id="evidence-empty">No evidence collected yet. Interview suspects to uncover clues.</div>
+    <div class="evidence-grid" id="evidence-grid" style="display:none"></div>
+  </div>
+</div>
+
+<!-- ACCUSATION SCREEN -->
+<div id="s-accusation" class="screen">
+  <div class="accusation-wrap">
+    <div class="accusation-title">Make Your Accusation</div>
+    <div class="accusation-subtitle">Choose the killer — choose wisely</div>
+    <div class="accusation-grid" id="accusation-grid"></div>
+    <div class="accusation-note" id="accusation-note">
+      Your evidence: <span id="acc-clue-count">0</span> clues collected.
+      Review your evidence board before making an accusation.
+    </div>
+    <div style="display:flex;gap:1rem;justify-content:center">
+      <button class="btn-ghost" onclick="showScreen('hub')">← Return to Manor</button>
+      <button class="btn-danger" id="btn-confirm-accuse" onclick="confirmAccusation()" disabled>⚖️ Accuse This Person</button>
+    </div>
+  </div>
+</div>
+
+<!-- ENDING SCREEN -->
+<div id="s-ending" class="screen">
+  <div class="ending-wrap" id="ending-wrap"></div>
+</div>
+
+<!-- API KEY MODAL -->
+<div class="overlay" id="modal-api">
+  <div class="modal-box">
+    <div class="modal-title">Enter Your Anthropic API Key</div>
+    <input class="modal-input" id="api-key-input" type="password" placeholder="sk-ant-...">
+    <div class="modal-note">
+      Your key is stored locally in this browser session only.<br>
+      Required to power the AI characters and story generation.
+    </div>
+    <div class="modal-btns">
+      <button class="btn-ghost" onclick="closeModal('modal-api')">Cancel</button>
+      <button class="btn-primary" onclick="saveApiKey()">Save Key</button>
+    </div>
+  </div>
+</div>
+
+<!-- LOADING OVERLAY -->
+<div class="overlay" id="loading-overlay">
+  <div class="loading-title" id="loading-title">Generating the Mystery...</div>
+  <div class="loading-spinner"></div>
+  <div class="loading-sub" id="loading-sub">Weaving secrets into the manor walls</div>
+</div>
+
+<!-- TOAST -->
+<div id="toast-container"></div>
+
+<!-- Scripts — order matters -->
+<script src="js/config.js"></script>
+<script src="js/portraits.js"></script>
+<script src="js/state.js"></script>
+<script src="js/api.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
